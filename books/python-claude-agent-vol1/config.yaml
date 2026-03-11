@@ -4,11 +4,11 @@ topics: ["python", "ai", "llm", "機械学習"]
 published: true
 price: 1480
 chapters:
-  - slug: intro
-  - slug: ch01
-  - slug: ch02
-  - slug: ch03
-  - slug: ch04
-  - slug: ch05
-  - slug: ch06
-  - slug: ch07
+  - intro
+  - ch01
+  - ch02
+  - ch03
+  - ch04
+  - ch05
+  - ch06
+  - ch07
