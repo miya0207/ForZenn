@@ -1,0 +1,19 @@
+title: "AIコードレビュー実践入門：人間との違いを理解して品質を3倍にする"
+summary: "Claude APIで自動レビューシステムを実装。設計・実装者視点でAIと人間の役割分担を徹底解説"
+topics: ["python", "ai", "githubactions", "git"]
+published: true
+price: 980
+chapters:
+  - intro
+  - ch01
+  - ch02
+  - ch03
+  - ch04
+  - ch05
+  - ch06
+  - ch07
+  - ch08
+  - ch09
+  - ch10
+  - bonus1
+  - bonus2
