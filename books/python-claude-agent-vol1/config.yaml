@@ -1,0 +1,30 @@
+title: "Pythonで作るClaudeエージェント：プロンプト設計から本番運用まで"
+summary: "notecreator実装を題材に、ReAct・ツール設計・コスト管理を徹底解説"
+topics: ["python", "ai", "llm", "claude", "agent"]
+published: true
+price: 1480
+chapters:
+  - slug: intro
+    title: "まえがき"
+    free: true
+  - slug: ch01
+    title: "第1章: LLMエージェントの設計思想：なぜ単純なAPIコールではダメか"
+    free: true
+  - slug: ch02
+    title: "第2章: Claude API実装：ストリーミング・ツール使用・コンテキスト管理"
+    free: false
+  - slug: ch03
+    title: "第3章: プロンプトエンジニアリングの実践：Chain-of-Thoughtから構造化出力まで"
+    free: false
+  - slug: ch04
+    title: "第4章: ツール設計パターン：ファイル操作・Web検索・DB操作"
+    free: false
+  - slug: ch05
+    title: "第5章: 状態管理とメモリアーキテクチャ"
+    free: false
+  - slug: ch06
+    title: "第6章: 本番環境での信頼性設計：リトライ・フォールバック・コスト管理"
+    free: false
+  - slug: ch07
+    title: "第7章: 評価・テスト・モニタリング：AIシステムの品質保証"
+    free: false
