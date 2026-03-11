@@ -1,8 +1,8 @@
-title: "Pythonで作るClaudeエージェント：プロンプト設計から本番運用まで"
+title: "Pythonで作るClaudeエージェント実践入門"
 summary: "notecreator実装を題材に、ReAct・ツール設計・コスト管理を徹底解説"
 topics: ["python", "ai", "llm", "機械学習"]
 published: true
-price: 1480
+price: 980
 chapters:
   - intro
   - ch01
@@ -12,3 +12,9 @@ chapters:
   - ch05
   - ch06
   - ch07
+  - ch08
+  - ch09
+  - ch10
+  - bonus1
+  - bonus2
+  - bonus3
