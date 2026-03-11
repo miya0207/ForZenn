@@ -1,3 +1,8 @@
+---
+title: "まえがき"
+free: true
+---
+
 # Pythonで作るClaudeエージェント：プロンプト設計から本番運用まで
 
 **notecreator実装を題材に、ReAct・ツール設計・コスト管理を徹底解説**
