@@ -585,4 +585,184 @@ if __name__ == "__main__":
     mem = AgentMemory(working_memory_size=5)
 
     # Layer 1
-    mem.add_message("
+    mem.add_message("user", "こんにちは")
+    mem.add_message("assistant", "はい、何かお手伝いできますか？")
+    mem.add_message("user", "Pythonのasyncioについて教えてください")
+    mem.add_message("user", "特に並列処理の部分が知りたいです")
+    mem.add_message("user", "実用的なサンプルコードも欲しいです")
+    mem.add_message("user", "最後に、エラーハンドリングも教えてください")
+    # ← working_memory_size=5 なので古いメッセージは自動的に消える
+    print(f"[L1] Working memory ({len(mem.get_messages())} msgs): OK")
+    
+    # Layer 2: エピソード記憶
+    mem.save_episode("前回のセッション要約", {"topic": "asyncio", "satisfaction": 0.9})
+    episodes = mem.recall_episodes("asyncio")
+    print(f"[L2] Episodes recalled: {len(episodes)}")
+    
+    # Layer 3: セマンティック検索（埋め込みなし版）
+    mem.store_knowledge("asyncio.gather で複数コルーチンを並列実行できる")
+    mem.store_knowledge("asyncio.sleep(0) でイベントループに制御を返す")
+    results = mem.search_knowledge("並列実行")
+    print(f"[L3] Knowledge search: {len(results)} hits")
+    
+    # Layer 4: 手続き記憶
+    mem.record_action("web_search", success=True, context="asyncio docs")
+    mem.record_action("web_search", success=True, context="Python official")
+    mem.record_action("code_execute", success=False, context="syntax error")
+    print(f"[L4] Success rate for web_search: {mem.get_success_rate('web_search'):.0%}")
+    
+    mem.clear_working_memory()
+    print("[Done] AgentMemory demo completed.")
+```
+
+---
+
+## cost_tracker.py — コストトラッカー完全実装
+
+```python
+"""
+cost_tracker.py — API利用コストの記録・集計・アラート
+
+使い方:
+    tracker = CostTracker(monthly_budget_usd=10.0)
+    tracker.record("claude-haiku-4-5", input_tokens=500, output_tokens=200)
+    print(tracker.report())
+"""
+
+from __future__ import annotations
+import json
+import logging
+from dataclasses import dataclass, field
+from datetime import datetime, date
+from pathlib import Path
+
+logger = logging.getLogger(__name__)
+
+# モデル別単価（$/1M tokens）
+MODEL_PRICING: dict[str, tuple[float, float]] = {
+    "claude-haiku-4-5":  (0.80,  4.00),
+    "claude-sonnet-4-6": (3.00, 15.00),
+    "claude-opus-4-6":   (15.00, 75.00),
+}
+
+
+@dataclass
+class UsageRecord:
+    """1回のAPI呼び出し記録"""
+    model: str
+    input_tokens: int
+    output_tokens: int
+    cost_usd: float
+    timestamp: str = field(default_factory=lambda: datetime.now().isoformat())
+    task_label: str = ""
+
+
+class CostTracker:
+    """
+    Claude APIの利用コストを追跡・集計するクラス。
+
+    機能:
+    - 呼び出しごとのコスト記録
+    - 日次/月次集計
+    - 予算アラート（閾値超過を警告）
+    - JSONファイルへの永続化
+    """
+
+    def __init__(
+        self,
+        monthly_budget_usd: float = 10.0,
+        persist_path: Path | None = None,
+    ) -> None:
+        self.monthly_budget_usd = monthly_budget_usd
+        self.persist_path = persist_path
+        self._records: list[UsageRecord] = []
+        
+        if persist_path and persist_path.exists():
+            self._load(persist_path)
+
+    def record(
+        self,
+        model: str,
+        input_tokens: int,
+        output_tokens: int,
+        task_label: str = "",
+    ) -> float:
+        """API呼び出しを記録し、コスト（USD）を返す。"""
+        inp_price, out_price = MODEL_PRICING.get(model, (3.00, 15.00))
+        cost = (input_tokens * inp_price + output_tokens * out_price) / 1_000_000
+        
+        rec = UsageRecord(
+            model=model,
+            input_tokens=input_tokens,
+            output_tokens=output_tokens,
+            cost_usd=cost,
+            task_label=task_label,
+        )
+        self._records.append(rec)
+        logger.debug(f"[Cost] {model} {input_tokens}in/{output_tokens}out = ${cost:.6f}")
+        
+        # 月次予算チェック
+        monthly = self.monthly_cost()
+        if monthly > self.monthly_budget_usd * 0.9:
+            logger.warning(f"[Cost] 月次予算の90%到達: ${monthly:.4f} / ${self.monthly_budget_usd}")
+        
+        if self.persist_path:
+            self._save(self.persist_path)
+        
+        return cost
+
+    def monthly_cost(self, year: int | None = None, month: int | None = None) -> float:
+        """指定月（デフォルト=今月）の合計コスト（USD）"""
+        today = date.today()
+        y, m = year or today.year, month or today.month
+        return sum(
+            r.cost_usd for r in self._records
+            if r.timestamp[:7] == f"{y:04d}-{m:02d}"
+        )
+
+    def daily_cost(self, target_date: date | None = None) -> float:
+        """指定日（デフォルト=今日）の合計コスト（USD）"""
+        d = (target_date or date.today()).isoformat()
+        return sum(r.cost_usd for r in self._records if r.timestamp[:10] == d)
+
+    def report(self) -> dict:
+        """サマリーレポートを返す"""
+        total = sum(r.cost_usd for r in self._records)
+        monthly = self.monthly_cost()
+        by_model = {}
+        for r in self._records:
+            by_model.setdefault(r.model, {"calls": 0, "cost_usd": 0.0})
+            by_model[r.model]["calls"] += 1
+            by_model[r.model]["cost_usd"] += r.cost_usd
+        
+        return {
+            "total_calls": len(self._records),
+            "total_cost_usd": round(total, 6),
+            "monthly_cost_usd": round(monthly, 6),
+            "monthly_budget_usd": self.monthly_budget_usd,
+            "budget_used_pct": round(monthly / self.monthly_budget_usd * 100, 1),
+            "by_model": {k: {**v, "cost_usd": round(v["cost_usd"], 6)} for k, v in by_model.items()},
+        }
+
+    def _save(self, path: Path) -> None:
+        data = [vars(r) for r in self._records]
+        path.write_text(json.dumps(data, ensure_ascii=False, indent=2), encoding="utf-8")
+
+    def _load(self, path: Path) -> None:
+        data = json.loads(path.read_text(encoding="utf-8"))
+        self._records = [UsageRecord(**d) for d in data]
+
+
+# ─── 使用例 ─────────────────────────────────────────────
+if __name__ == "__main__":
+    tracker = CostTracker(monthly_budget_usd=10.0)
+    
+    # 模擬的な呼び出しを記録
+    tracker.record("claude-haiku-4-5",  input_tokens=1200, output_tokens=800,  task_label="SEO生成")
+    tracker.record("claude-sonnet-4-6", input_tokens=3500, output_tokens=2000, task_label="記事生成")
+    tracker.record("claude-haiku-4-5",  input_tokens=500,  output_tokens=300,  task_label="品質検査")
+    tracker.record("claude-sonnet-4-6", input_tokens=2000, output_tokens=1500, task_label="記事生成")
+    
+    import json
+    print(json.dumps(tracker.report(), indent=2, ensure_ascii=False))
+```

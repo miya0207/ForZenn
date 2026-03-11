@@ -458,4 +458,94 @@ free: false
   >     # 1. データベース疎通確認
   >     try:
   >         t = time.time()
-  >         await db.execute
+  >         await db.execute        t = time.time()
+        await db.execute("SELECT 1")
+        checks["database"] = "healthy"
+        latencies["database_ms"] = round((time.time() - t) * 1000, 2)
+    except Exception as e:
+        checks["database"] = f"unhealthy: {e}"
+        latencies["database_ms"] = -1
+    
+    # 2. LLM API疎通確認（低コストモデルで実施）
+    try:
+        t = time.time()
+        client = anthropic.Anthropic()
+        client.messages.create(
+            model="claude-haiku-4-5",
+            max_tokens=1,
+            messages=[{"role": "user", "content": "ping"}]
+        )
+        checks["llm_api"] = "healthy"
+        latencies["llm_api_ms"] = round((time.time() - t) * 1000, 2)
+    except Exception as e:
+        checks["llm_api"] = f"unhealthy: {e}"
+        latencies["llm_api_ms"] = -1
+    
+    # 全体ステータス判定
+    statuses = list(checks.values())
+    if all(s == "healthy" for s in statuses):
+        overall = "healthy"
+    elif any("unhealthy" in s for s in statuses):
+        overall = "unhealthy"
+    else:
+        overall = "degraded"
+    
+    return HealthResponse(status=overall, checks=checks, latency_ms=latencies)
+  > ```
+
+---
+
+- [ ] 🔴 **本番リリース前にロールバック手順を文書化し、チームで共有している**
+
+  > **なぜ重要か**: 障害時の判断は時間との戦い。手順が文書化されていないと、パニック状態で誤操作が発生する。"何を・どの順で・誰が" を事前に決めておくことで、MTTRを大幅に短縮できる。
+
+  > **確認コマンド/設定例**:
+  > ```bash
+  > # ロールバック手順書の例
+  > # 1. アラート検知 → Slackに通知
+  > # 2. 前バージョンのDockerイメージを確認
+  > docker images | grep myapp
+  > # 3. ロールバック実行
+  > docker compose down && docker compose up -d --pull never myapp:v1.2.3
+  > # 4. ヘルスチェック確認
+  > curl https://api.example.com/health
+  > ```
+
+---
+
+- [ ] 🟡 **LLMのレスポンスに対してフォールバック戦略を実装している**
+
+  > **なぜ重要か**: LLM APIは可用性100%ではない。Anthropicのステータスページでは過去にも数分〜数十分のダウンタイムがあった。フォールバック（キャッシュ返却・代替モデル・定型文返却）がないと、サービス全体が停止する。
+
+  > **確認コマンド/設定例**:
+  > ```python
+  > def generate_with_fallback(prompt: str) -> str:
+  >     try:
+  >         return primary_client.generate(prompt)  # Sonnet
+  >     except anthropic.APIStatusError:
+  >         logger.warning("Primary API failed, trying fallback")
+  >         try:
+  >             return fallback_client.generate(prompt)  # Haiku
+  >         except Exception:
+  >             return STATIC_FALLBACK_MESSAGE  # 定型文
+  > ```
+
+---
+
+## チェックリスト活用ガイド
+
+このリストは **デプロイ前** と **月次レビュー** の2回使うことを推奨します。
+
+| タイミング | チェック対象 | 合格基準 |
+|----------|------------|---------|
+| デプロイ前 | 🔴必須項目 | 全てチェック済み |
+| 月次レビュー | 🔴🟡全項目 | 新しい脅威・コスト異常がないか確認 |
+
+### 優先度の考え方
+
+```
+セキュリティ（🔴）> コスト管理（🔴🟡）> 監視（🔴）> 可用性（🟡）
+```
+
+LLMを使うシステムは「コスト爆発」と「プロンプトインジェクション」が特有のリスクです。  
+この2点だけは、どんな小さなプロジェクトでも必ず対処してください。
