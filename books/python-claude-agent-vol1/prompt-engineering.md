@@ -60,7 +60,7 @@ client = anthropic.Anthropic()
 def naive_prompt(question: str) -> str:
     """❌ 悪い例: LLMに直接答えさせる"""
     message = client.messages.create(
-        model="claude-opus-4-5",
+        model="claude-opus-4-6",
         max_tokens=256,
         messages=[{"role": "user", "content": question}]
     )
@@ -77,7 +77,7 @@ def zero_shot_cot(question: str) -> str:
     """
     prompt = f"{question}\n\nステップバイステップで考えてください。"
     message = client.messages.create(
-        model="claude-opus-4-5",
+        model="claude-opus-4-6",
         max_tokens=512,
         messages=[{"role": "user", "content": prompt}]
     )
@@ -104,7 +104,7 @@ A:
 では、次の問題を同じ形式で解いてください:
 """
     message = client.messages.create(
-        model="claude-opus-4-5",
+        model="claude-opus-4-6",
         max_tokens=512,
         messages=[{"role": "user", "content": few_shot_examples + question}]
     )
@@ -220,7 +220,7 @@ def benchmark_prompt_method(
 
         start = time.time()
         message = client.messages.create(
-            model="claude-sonnet-4-5",
+            model="claude-sonnet-4-6",
             max_tokens=512,
             messages=[{"role": "user", "content": prompt}]
         )

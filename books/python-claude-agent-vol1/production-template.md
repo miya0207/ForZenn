@@ -1,5 +1,6 @@
 ---
 title: "本番エージェント完全テンプレート — notecreatorアーキテクチャ全公開"
+free: false
 ---
 
 :::message

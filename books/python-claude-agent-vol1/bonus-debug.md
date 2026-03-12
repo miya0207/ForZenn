@@ -1,5 +1,6 @@
 ---
 title: "付録B: AIエージェントデバッグガイド"
+free: false
 ---
 
 :::message

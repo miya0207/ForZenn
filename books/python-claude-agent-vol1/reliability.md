@@ -38,7 +38,7 @@ def bad_generate(client, prompt: str) -> str:
     for _ in range(3):
         try:
             response = client.messages.create(
-                model="claude-sonnet-4-5",
+                model="claude-sonnet-4-6",
                 max_tokens=1024,
                 messages=[{"role": "user", "content": prompt}],
             )
@@ -67,7 +67,7 @@ from dotenv import load_dotenv
 _ROOT = Path(__file__).resolve().parent
 load_dotenv(_ROOT / ".env", override=False)
 
-DEFAULT_MODEL = "claude-sonnet-4-5"
+DEFAULT_MODEL = "claude-sonnet-4-6"
 MAX_RETRIES = 3
 RETRY_BASE_DELAY = 2.0
 
@@ -147,7 +147,7 @@ class ClaudeClient:
             except anthropic.NotFoundError:
                 raise ValueError(
                     f"モデル '{self.model}' が見つかりません。"
-                    f".envを確認: CLAUDE_MODEL=claude-sonnet-4-5"
+                    f".envを確認: CLAUDE_MODEL=claude-sonnet-4-6"
                 )
 
             except anthropic.APIStatusError as e:
@@ -178,13 +178,13 @@ class ClaudeClient:
 | モデル | 用途 | コスト（入力/出力 per MTok） | 特徴 |
 |--------|------|--------------------------|------|
 | claude-opus-4 | 最高品質 | $15/$75 | 複雑な推論 |
-| claude-sonnet-4-5 | バランス | $3/$15 | 本番デフォルト |
+| claude-sonnet-4-6 | バランス | $3/$15 | 本番デフォルト |
 | claude-haiku-4-5 | 高速・安価 | $0.8/$4 | フィルタリング向け |
 
 ```python
 # フォールバックチェーン定義
 FALLBACK_CHAIN = [
-    "claude-sonnet-4-5",   # プライマリ
+    "claude-sonnet-4-6",   # プライマリ
     "claude-haiku-4-5",    # フォールバック1
 ]
 
@@ -295,7 +295,7 @@ from typing import Optional
 # モデル別コスト（USD per 1,000,000 tokens）
 MODEL_COSTS = {
     "claude-opus-4":       {"input": 15.0,  "output": 75.0},
-    "claude-sonnet-4-5":   {"input": 3.0,   "output": 15.0},
+    "claude-sonnet-4-6":   {"input": 3.0,   "output": 15.0},
     "claude-haiku-4-5":    {"input": 0.8,   "output": 4.0},
     "claude-sonnet-4-6":   {"input": 3.0,   "output": 15.0},
     "claude-haiku-4-5-20251001": {"input": 0.8, "output": 4.0},
@@ -337,7 +337,7 @@ def calculate_cost(model: str, input_tokens: int, output_tokens: int) -> float:
 
     if costs is None:
         print(f"  ⚠️  未知のモデル '{model}' → Sonnet価格で計算")
-        costs = MODEL_COSTS["claude-sonnet-4-5"]
+        costs = MODEL_COSTS["claude-sonnet-4-6"]
 
     input_cost = (input_tokens / 1_000_000) * costs["input"]
     output_cost = (output_tokens / 1_000_000) * costs["output"]

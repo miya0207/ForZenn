@@ -39,7 +39,7 @@ client = anthropic.Anthropic()
 def simple_chatbot(user_input: str) -> str:
     """単純なAPIコール。よくある「とりあえず動く」実装"""
     message = client.messages.create(
-        model="claude-opus-4-5",
+        model="claude-opus-4-6",
         max_tokens=1024,
         messages=[{"role": "user", "content": user_input}]
     )
@@ -171,7 +171,7 @@ def react_agent(user_query: str, max_iterations: int = 5) -> str:
 
         # LLMに推論させる（Reasoning）
         response = client.messages.create(
-            model="claude-opus-4-5",
+            model="claude-opus-4-6",
             max_tokens=1024,
             tools=TOOLS,
             messages=messages
@@ -310,7 +310,7 @@ class AgentLoop:
         self,
         tools: list[dict],
         tool_executor: Callable,
-        model: str = "claude-opus-4-5",
+        model: str = "claude-opus-4-6",
         max_iterations: int = 10,
         system_prompt: str = "あなたは与えられたツールを使って問題を解決するAIエージェントです。"
     ):

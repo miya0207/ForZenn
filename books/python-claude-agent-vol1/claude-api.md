@@ -90,7 +90,7 @@ inspector = RateLimitInspector()
 # 実際のAPIコールでヘッダーを取得
 try:
     with client.messages.with_raw_response.create(
-        model="claude-opus-4-5",
+        model="claude-opus-4-6",
         max_tokens=100,
         messages=[{"role": "user", "content": "Hello"}]
     ) as raw_response:
@@ -125,12 +125,12 @@ client = anthropic.Anthropic(api_key="your-api-key")
 def bad_generate(prompt: str) -> str:
     """問題: 10秒間ユーザーに何も見せない"""
     response = client.messages.create(
-        model="claude-opus-4-5",
+        model="claude-opus-4-6",
         max_tokens=2000,
         messages=[{"role": "user", "content": prompt}]
     )
     return response.content[0].text
-    # claude-opus-4-5で2000トークン生成すると平均15-25秒
+    # claude-opus-4-6で2000トークン生成すると平均15-25秒
     # その間ユーザーは画面を見つめるだけ
 ```
 
@@ -161,7 +161,7 @@ def stream_response(
     client: anthropic.Anthropic,
     messages: list[dict],
     system: str = "",
-    model: str = "claude-opus-4-5",
+    model: str = "claude-opus-4-6",
     max_tokens: int = 2000,
     show_stats: bool = True,
 ) -> Generator[str, None, StreamingStats]:
@@ -252,7 +252,7 @@ async def stream_sse(
             )
     """
     create_kwargs = {
-        "model": "claude-opus-4-5",
+        "model": "claude-opus-4-6",
         "max_tokens": 2000,
         "messages": messages,
     }
@@ -494,7 +494,7 @@ class ToolExecutor:
 
 ## 2.4 コンテキストウィンドウ管理
 
-claude-opus-4-5 の 200k トークンは「無限」ではありません。
+claude-opus-4-6 の 200k トークンは「無限」ではありません。
 
 | 入力トークン数 | Sonnet コスト（入力のみ） | 月100回呼び出し |
 |-------------|------------------------|---------------|

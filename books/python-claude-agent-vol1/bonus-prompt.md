@@ -1,5 +1,6 @@
 ---
 title: "付録A: プロンプトテンプレートライブラリ"
+free: false
 ---
 
 :::message

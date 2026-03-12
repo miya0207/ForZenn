@@ -173,7 +173,7 @@ Action Input: [JSON形式の引数]
 Final Answer: [回答]
 """
 
-    def __init__(self, client: anthropic.Anthropic, model: str = "claude-opus-4-5"):
+    def __init__(self, client: anthropic.Anthropic, model: str = "claude-opus-4-6"):
         self.client = client
         self.model = model
         self.steps: list[AgentStep] = []
@@ -261,7 +261,7 @@ class PlanActAgent:
   "reasoning": "なぜこの計画にしたか"
 }}"""
 
-    def __init__(self, client: anthropic.Anthropic, model: str = "claude-opus-4-5"):
+    def __init__(self, client: anthropic.Anthropic, model: str = "claude-opus-4-6"):
         self.client = client
         self.model = model
 
@@ -369,7 +369,7 @@ class ReflexionAgent:
         self,
         client: anthropic.Anthropic,
         evaluator: Callable[[str, str], float],  # (task, result) -> 0.0~1.0
-        model: str = "claude-opus-4-5",
+        model: str = "claude-opus-4-6",
         max_attempts: int = 3,
         success_threshold: float = 0.8,
     ):
@@ -597,7 +597,7 @@ class ToolUseAgent:
     3. stop_reason が "tool_use" でないなら終了
     """
 
-    def __init__(self, client: anthropic.Anthropic, model: str = "claude-opus-4-5"):
+    def __init__(self, client: anthropic.Anthropic, model: str = "claude-opus-4-6"):
         self.client = client
         self.model = model
         self.call_log: list[dict] = []
